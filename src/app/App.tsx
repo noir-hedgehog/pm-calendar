@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Download, RotateCcw, Share2, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import QRCode from "qrcode";
 import { CN_WEEKDAYS, FORTUNE_LEGEND, PROFESSION_PROFILES, PROFESSIONS, type Profession } from "./almanacData";
 import {
   dateSeed,
@@ -10,12 +11,19 @@ import {
   getDailyData,
   isSameDay,
   lunarDate,
+  numToChinese,
   yearGanzhi,
   yearZodiac,
 } from "./almanac";
 
-function formatSolarDate(date: Date) {
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+const PROJECT_URL = "https://github.com/noir-hedgehog/pm-calendar";
+
+function formatMonthDay(date: Date) {
+  return `${numToChinese(date.getMonth() + 1)}月 ${numToChinese(date.getDate())}日`;
+}
+
+function formatCompactDate(date: Date) {
+  return `${date.getMonth() + 1}月${date.getDate()}日${CN_WEEKDAYS[date.getDay()]}`;
 }
 
 function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
@@ -34,7 +42,16 @@ function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, x: number, 
   return y + lineHeight;
 }
 
-function createShareImage(date: Date, profession: Profession) {
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+async function createShareImage(date: Date, profession: Profession) {
   const canvas = document.createElement("canvas");
   canvas.width = 900;
   canvas.height = 1400;
@@ -45,7 +62,13 @@ function createShareImage(date: Date, profession: Profession) {
   const data = getDailyData(date, profession);
   const lunar = lunarDate(date);
   const sealColor = fortuneColor(data.fortune);
-  const dateText = formatSolarDate(date);
+  const monthDayText = formatMonthDay(date);
+  const qrDataUrl = await QRCode.toDataURL(PROJECT_URL, {
+    width: 172,
+    margin: 1,
+    color: { dark: "#1A1208", light: "#F0E6CC" },
+  });
+  const qrImage = await loadImage(qrDataUrl);
 
   ctx.fillStyle = "#F0E6CC";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -65,42 +88,57 @@ function createShareImage(date: Date, profession: Profession) {
   ctx.lineWidth = 2;
   ctx.strokeRect(70, 70, canvas.width - 140, canvas.height - 140);
 
+  // Header: title/date on the left, fortune seal on the right.
+  ctx.textAlign = "left";
   ctx.fillStyle = "#8B1A1A";
-  ctx.font = "700 34px 'Noto Serif SC', serif";
-  ctx.textAlign = "center";
-  ctx.fillText("职 场 黄 历", canvas.width / 2, 150);
+  ctx.font = "700 38px 'Noto Serif SC', serif";
+  ctx.fillText("职场黄历", 122, 145);
   ctx.fillStyle = "#6B5C3E";
-  ctx.font = "24px 'Noto Serif SC', serif";
-  ctx.fillText(`${profile.label} · ${dayGanzhi(date)} · 农历${lunar.month}月${lunar.day}`, canvas.width / 2, 205);
+  ctx.font = "22px 'Noto Serif SC', serif";
+  ctx.fillText(`${profile.label} · ${dayGanzhi(date)} · 农历${lunar.month}月${lunar.day}`, 122, 190);
 
   ctx.fillStyle = "#1A1208";
-  ctx.font = "600 46px 'Noto Serif SC', serif";
-  ctx.fillText(dateText, canvas.width / 2, 290);
+  ctx.font = "600 54px 'Noto Serif SC', serif";
+  ctx.fillText(monthDayText, 122, 270);
   ctx.fillStyle = "#6B5C3E";
   ctx.font = "24px 'Noto Serif SC', serif";
-  ctx.fillText(CN_WEEKDAYS[date.getDay()], canvas.width / 2, 335);
+  ctx.fillText(CN_WEEKDAYS[date.getDay()], 122, 315);
 
   ctx.strokeStyle = sealColor;
   ctx.lineWidth = 5;
-  ctx.strokeRect(358, 390, 184, 184);
+  ctx.strokeRect(626, 118, 152, 152);
   ctx.strokeStyle = `${sealColor}66`;
   ctx.lineWidth = 2;
-  ctx.strokeRect(372, 404, 156, 156);
+  ctx.strokeRect(638, 130, 128, 128);
   ctx.fillStyle = sealColor;
-  ctx.font = "24px 'Noto Serif SC', serif";
-  ctx.fillText("今日", canvas.width / 2, 462);
-  ctx.font = "700 58px 'Noto Serif SC', serif";
-  ctx.fillText(data.fortune, canvas.width / 2, 532);
+  ctx.textAlign = "center";
+  ctx.font = "21px 'Noto Serif SC', serif";
+  ctx.fillText("今日", 702, 180);
+  ctx.font = "700 50px 'Noto Serif SC', serif";
+  ctx.fillText(data.fortune, 702, 232);
 
+  // Almanac meta as scan-friendly label/value cells.
   ctx.textAlign = "left";
-  ctx.fillStyle = "#3A2818";
-  ctx.font = "25px 'Noto Serif SC', serif";
   const meta = [
-    `喜神 ${data.luckyGod}    财神 ${data.wealthGod}`,
-    `贵人 ${data.noble}    冲煞 ${data.clash}`,
-    `吉星 ${data.star}    值日 ${data.officer}日 · ${data.element}气主事`,
+    ["喜神", data.luckyGod, "#A07020"],
+    ["财神", data.wealthGod, "#A07020"],
+    ["贵人", data.noble, "#3A2818"],
+    ["冲煞", `${data.clash}（宜回避）`, "#3A2818"],
+    ["吉星", data.star, "#8B1A1A"],
+    ["值日", `${data.officer}日 · ${data.element}气主事`, "#3A2818"],
   ];
-  meta.forEach((line, index) => ctx.fillText(line, 130, 650 + index * 44));
+  meta.forEach(([label, value, color], index) => {
+    const col = index % 2;
+    const row = Math.floor(index / 2);
+    const x = 122 + col * 330;
+    const y = 405 + row * 70;
+    ctx.fillStyle = "#8B7455";
+    ctx.font = "18px 'Noto Serif SC', serif";
+    ctx.fillText(label, x, y);
+    ctx.fillStyle = color;
+    ctx.font = "600 26px 'Noto Serif SC', serif";
+    ctx.fillText(value, x, y + 34);
+  });
 
   const drawList = (title: string, items: string[], x: number, y: number, color: string) => {
     ctx.fillStyle = color;
@@ -117,19 +155,28 @@ function createShareImage(date: Date, profession: Profession) {
     items.slice(0, 6).forEach((item, index) => {
       const row = Math.floor(index / 2);
       const col = index % 2;
-      ctx.fillText(`· ${item}`, x + col * 310, y + 56 + row * 45);
+      ctx.fillText(`· ${item}`, x + col * 310, y + 66 + row * 50);
     });
   };
 
-  drawList("宜", data.auspicious, 130, 830, "#8B1A1A");
-  drawList("忌", data.inauspicious, 130, 1040, "#3A2818");
+  drawList("宜", data.auspicious, 122, 680, "#8B1A1A");
+  drawList("忌", data.inauspicious, 122, 925, "#3A2818");
 
+  ctx.strokeStyle = "rgba(181,133,42,0.36)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(112, 1160, 676, 136);
   ctx.fillStyle = "#A07020";
-  ctx.font = "600 23px 'Noto Serif SC', serif";
-  ctx.fillText(`${profile.shortLabel}箴言`, 130, 1245);
+  ctx.font = "600 22px 'Noto Serif SC', serif";
+  ctx.fillText(`${profile.shortLabel}箴言`, 136, 1206);
   ctx.fillStyle = "#5A4A2E";
   ctx.font = "23px 'Noto Serif SC', serif";
-  wrapCanvasText(ctx, data.quote, 130, 1285, 640, 36);
+  wrapCanvasText(ctx, data.quote, 136, 1244, 400, 34);
+  ctx.drawImage(qrImage, 596, 1174, 108, 108);
+  ctx.fillStyle = "#8B7455";
+  ctx.font = "16px 'Noto Serif SC', serif";
+  ctx.fillText("项目二维码", 716, 1230);
+  ctx.font = "13px 'Noto Serif SC', serif";
+  ctx.fillText("GitHub 开源项目", 716, 1256);
 
   return canvas.toDataURL("image/png");
 }
@@ -148,9 +195,7 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
   const data = getDailyData(date, profession);
   const profile = PROFESSION_PROFILES[profession];
   const fColor = fortuneColor(data.fortune);
-  const solarYear = date.getFullYear();
-  const solarMonth = date.getMonth() + 1;
-  const solarDay = date.getDate();
+  const monthDayText = formatMonthDay(date);
   const weekdayStr = CN_WEEKDAYS[date.getDay()];
   const metaItems = [
     { label: "喜神", value: data.luckyGod, tone: "#A07020" },
@@ -171,19 +216,11 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
         >
           {ganzhiDay} · 农历{lunar.month}月{lunar.day}
         </div>
-        <div className="flex items-end justify-center gap-1.5 mb-1" style={{ color: "#1A1208" }}>
-          <span className="text-[18px] leading-none tabular-nums" style={{ fontFamily: '"Noto Serif SC", serif' }}>
-            {solarYear}
-          </span>
-          <span className="text-[13px] leading-none pb-[2px]" style={{ color: "#6B5C3E" }}>年</span>
-          <span className="text-[32px] leading-none tabular-nums font-semibold" style={{ fontFamily: '"Noto Serif SC", serif' }}>
-            {solarMonth}
-          </span>
-          <span className="text-[13px] leading-none pb-[3px]" style={{ color: "#6B5C3E" }}>月</span>
-          <span className="text-[32px] leading-none tabular-nums font-semibold" style={{ fontFamily: '"Noto Serif SC", serif' }}>
-            {solarDay}
-          </span>
-          <span className="text-[13px] leading-none pb-[3px]" style={{ color: "#6B5C3E" }}>日</span>
+        <div
+          className="text-[30px] font-semibold tracking-[0.08em] mb-1"
+          style={{ fontFamily: '"ZCOOL XiaoWei", "Noto Serif SC", serif', color: "#1A1208" }}
+        >
+          {monthDayText}
         </div>
         <div className="text-xs tracking-[0.25em]" style={{ color: "#6B5C3E" }}>
           {weekdayStr}
@@ -220,7 +257,7 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
               key={item.label}
               className={item.wide ? "col-span-2 min-w-0" : "min-w-0"}
             >
-              <div className="text-[10px] leading-none tracking-[0.18em] mb-1" style={{ color: "#8B7455" }}>
+              <div className="text-[10px] leading-none tracking-[0.16em] mb-1.5" style={{ color: "#8B7455" }}>
                 {item.label}
               </div>
               <div className="leading-[1.35] break-words" style={{ color: item.tone ?? "#3A2818" }}>
@@ -232,7 +269,7 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
       </div>
 
       {/* Auspicious */}
-      <section className="mb-5">
+      <section className="mb-7">
         <div className="flex items-center gap-3 mb-3">
           <span
             className="text-[22px] font-bold leading-none"
@@ -242,7 +279,7 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
           </span>
           <div className="flex-1" style={{ height: "1px", background: "rgba(139,26,26,0.25)" }} />
         </div>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-[10px]">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-3">
           {data.auspicious.map((item, i) => (
             <div key={i} className="flex items-center gap-2 text-[13px]" style={{ color: "#1A1208" }}>
               <span
@@ -255,7 +292,7 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
         </div>
       </section>
 
-      <div className="mb-5" style={{ height: "1px", background: "rgba(26,18,8,0.1)" }} />
+      <div className="mb-7" style={{ height: "1px", background: "rgba(26,18,8,0.1)" }} />
 
       {/* Inauspicious */}
       <section className="mb-7">
@@ -268,7 +305,7 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
           </span>
           <div className="flex-1" style={{ height: "1px", background: "rgba(58,40,24,0.25)" }} />
         </div>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-[10px]">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-3">
           {data.inauspicious.map((item, i) => (
             <div key={i} className="flex items-center gap-2 text-[13px]" style={{ color: "#4A3828" }}>
               <span
@@ -433,6 +470,7 @@ export default function App() {
   const [calYear, setCalYear] = useState(today.getFullYear());
   const [calMonth, setCalMonth] = useState(today.getMonth());
   const [shareImage, setShareImage] = useState<string | null>(null);
+  const [isCreatingShare, setIsCreatingShare] = useState(false);
 
   const ganzhiYear = yearGanzhi(selectedDate.getFullYear());
   const zodiac = yearZodiac(selectedDate.getFullYear());
@@ -461,9 +499,14 @@ export default function App() {
     setCalMonth(selectedDate.getMonth());
     setView("month");
   }
-  function shareCurrentDay() {
-    const image = createShareImage(selectedDate, profession);
-    if (image) setShareImage(image);
+  async function shareCurrentDay() {
+    setIsCreatingShare(true);
+    try {
+      const image = await createShareImage(selectedDate, profession);
+      if (image) setShareImage(image);
+    } finally {
+      setIsCreatingShare(false);
+    }
   }
 
   return (
@@ -511,8 +554,9 @@ export default function App() {
             <div className="flex items-center gap-2">
               <button
                 onClick={shareCurrentDay}
+                disabled={isCreatingShare}
                 className="w-8 h-8 flex items-center justify-center transition-opacity hover:opacity-65"
-                style={{ color: "#6B5C3E" }}
+                style={{ color: "#6B5C3E", opacity: isCreatingShare ? 0.45 : 1 }}
                 title="生成分享图片"
               >
                 <Share2 size={17} strokeWidth={1.6} />
