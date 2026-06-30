@@ -10,11 +10,13 @@ import {
   getDailyData,
   isSameDay,
   lunarDate,
-  numToChinese,
   yearGanzhi,
-  yearToChinese,
   yearZodiac,
 } from "./almanac";
+
+function formatSolarDate(date: Date) {
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+}
 
 function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
   let line = "";
@@ -43,7 +45,7 @@ function createShareImage(date: Date, profession: Profession) {
   const data = getDailyData(date, profession);
   const lunar = lunarDate(date);
   const sealColor = fortuneColor(data.fortune);
-  const dateText = `${yearToChinese(date.getFullYear())}年${numToChinese(date.getMonth() + 1)}月${numToChinese(date.getDate())}日`;
+  const dateText = formatSolarDate(date);
 
   ctx.fillStyle = "#F0E6CC";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -146,24 +148,42 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
   const data = getDailyData(date, profession);
   const profile = PROFESSION_PROFILES[profession];
   const fColor = fortuneColor(data.fortune);
-  const dateStr = `${yearToChinese(date.getFullYear())}年${numToChinese(date.getMonth() + 1)}月${numToChinese(date.getDate())}日`;
+  const solarYear = date.getFullYear();
+  const solarMonth = date.getMonth() + 1;
+  const solarDay = date.getDate();
   const weekdayStr = CN_WEEKDAYS[date.getDay()];
+  const metaItems = [
+    { label: "喜神", value: data.luckyGod, tone: "#A07020" },
+    { label: "财神", value: data.wealthGod, tone: "#A07020" },
+    { label: "贵人", value: data.noble },
+    { label: "冲煞", value: `${data.clash}（宜回避）`, wide: true },
+    { label: "吉星", value: data.star, tone: "#8B1A1A" },
+    { label: "值日", value: `${data.officer}日 · ${data.element}气主事` },
+  ];
 
   return (
     <div>
       {/* Date Hero */}
       <div className="text-center pt-4 pb-6 mb-5" style={{ borderBottom: "1px solid rgba(26,18,8,0.12)" }}>
         <div
-          className="text-[11px] tracking-[0.35em] mb-2"
+          className="text-[11px] tracking-[0.18em] mb-2"
           style={{ color: "#6B5C3E" }}
         >
           {ganzhiDay} · 农历{lunar.month}月{lunar.day}
         </div>
-        <div
-          className="text-[26px] font-medium tracking-wide mb-1"
-          style={{ fontFamily: '"ZCOOL XiaoWei", "Noto Serif SC", serif', color: "#1A1208" }}
-        >
-          {dateStr}
+        <div className="flex items-end justify-center gap-1.5 mb-1" style={{ color: "#1A1208" }}>
+          <span className="text-[18px] leading-none tabular-nums" style={{ fontFamily: '"Noto Serif SC", serif' }}>
+            {solarYear}
+          </span>
+          <span className="text-[13px] leading-none pb-[2px]" style={{ color: "#6B5C3E" }}>年</span>
+          <span className="text-[32px] leading-none tabular-nums font-semibold" style={{ fontFamily: '"Noto Serif SC", serif' }}>
+            {solarMonth}
+          </span>
+          <span className="text-[13px] leading-none pb-[3px]" style={{ color: "#6B5C3E" }}>月</span>
+          <span className="text-[32px] leading-none tabular-nums font-semibold" style={{ fontFamily: '"Noto Serif SC", serif' }}>
+            {solarDay}
+          </span>
+          <span className="text-[13px] leading-none pb-[3px]" style={{ color: "#6B5C3E" }}>日</span>
         </div>
         <div className="text-xs tracking-[0.25em]" style={{ color: "#6B5C3E" }}>
           {weekdayStr}
@@ -194,33 +214,20 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
         </div>
 
         {/* Info grid */}
-        <div className="flex-1 text-[12.5px] leading-[1.85] tracking-wide" style={{ color: "#3A2818" }}>
-          <div className="flex flex-wrap gap-x-4">
-            <span>
-              <span style={{ color: "#6B5C3E" }}>喜神 · </span>
-              <span style={{ color: "#A07020" }}>{data.luckyGod}</span>
-            </span>
-            <span>
-              <span style={{ color: "#6B5C3E" }}>财神 · </span>
-              <span style={{ color: "#A07020" }}>{data.wealthGod}</span>
-            </span>
-          </div>
-          <div>
-            <span style={{ color: "#6B5C3E" }}>贵人 · </span>
-            {data.noble}
-          </div>
-          <div>
-            <span style={{ color: "#6B5C3E" }}>冲煞 · </span>
-            {data.clash}（宜回避）
-          </div>
-          <div>
-            <span style={{ color: "#6B5C3E" }}>吉星 · </span>
-            <span style={{ color: "#8B1A1A" }}>{data.star}</span>
-          </div>
-          <div>
-            <span style={{ color: "#6B5C3E" }}>值日 · </span>
-            {data.officer}日 · {data.element}气主事
-          </div>
+        <div className="flex-1 grid grid-cols-2 gap-x-3 gap-y-2 text-[12.5px]" style={{ color: "#3A2818" }}>
+          {metaItems.map(item => (
+            <div
+              key={item.label}
+              className={item.wide ? "col-span-2 min-w-0" : "min-w-0"}
+            >
+              <div className="text-[10px] leading-none tracking-[0.18em] mb-1" style={{ color: "#8B7455" }}>
+                {item.label}
+              </div>
+              <div className="leading-[1.35] break-words" style={{ color: item.tone ?? "#3A2818" }}>
+                {item.value}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -321,10 +328,10 @@ function MonthView({
           <ChevronLeft size={18} strokeWidth={1.5} />
         </button>
         <span
-          className="text-[15px] tracking-[0.3em] font-medium"
+          className="text-[16px] tracking-[0.08em] font-medium tabular-nums"
           style={{ fontFamily: '"ZCOOL XiaoWei", serif', color: "#1A1208" }}
         >
-          {yearToChinese(calYear)}年{numToChinese(calMonth + 1)}月
+          {calYear}年{calMonth + 1}月
         </span>
         <button
           onClick={onNext}
