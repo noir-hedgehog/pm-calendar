@@ -180,7 +180,7 @@ function downloadImage(dataUrl: string, date: Date, profession: Profession) {
 }
 
 // ─── Day View ─────────────────────────────────────────────────────────────────
-function DayView({ date, profession }: { date: Date; profession: Profession }) {
+function DayView({ date, profession, yearLabel }: { date: Date; profession: Profession; yearLabel: string }) {
   const lunar = lunarDate(date);
   const ganzhiDay = dayGanzhi(date);
   const data = getDailyData(date, profession);
@@ -205,7 +205,7 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
           className="text-[11px] tracking-[0.18em] mb-2"
           style={{ color: "#6B5C3E" }}
         >
-          {ganzhiDay} · 农历{lunar.month}月{lunar.day}
+          {yearLabel} · {ganzhiDay} · 农历{lunar.month}月{lunar.day}
         </div>
         <div
           className="text-[30px] font-semibold tracking-[0.08em] mb-1"
@@ -270,7 +270,7 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
           </span>
           <div className="flex-1" style={{ height: "1px", background: "rgba(139,26,26,0.25)" }} />
         </div>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-3 pl-5">
           {data.auspicious.map((item, i) => (
             <div key={i} className="flex items-center gap-2 text-[13px]" style={{ color: "#1A1208" }}>
               <span
@@ -283,8 +283,6 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
         </div>
       </section>
 
-      <div className="mb-7" style={{ height: "1px", background: "rgba(26,18,8,0.1)" }} />
-
       {/* Inauspicious */}
       <section className="mb-7">
         <div className="flex items-center gap-3 mb-3">
@@ -296,7 +294,7 @@ function DayView({ date, profession }: { date: Date; profession: Profession }) {
           </span>
           <div className="flex-1" style={{ height: "1px", background: "rgba(58,40,24,0.25)" }} />
         </div>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-3 pl-5">
           {data.inauspicious.map((item, i) => (
             <div key={i} className="flex items-center gap-2 text-[13px]" style={{ color: "#4A3828" }}>
               <span
@@ -561,19 +559,6 @@ export default function App() {
               </select>
             </div>
             <div className="flex items-center gap-2">
-              <a
-                href={PROJECT_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="h-8 flex items-center"
-                title="GitHub stars"
-              >
-                <img
-                  alt="GitHub stars"
-                  src="https://img.shields.io/github/stars/noir-hedgehog/pm-calendar?style=social"
-                  className="h-5"
-                />
-              </a>
               <button
                 onClick={shareCurrentDay}
                 disabled={isCreatingShare}
@@ -595,14 +580,19 @@ export default function App() {
                 <CalendarDays size={16} strokeWidth={1.6} />
                 <span className="text-[11px] tracking-[0.16em]">月历</span>
               </button>
-            </div>
-          </div>
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div />
-            <div className="text-right flex-shrink-0">
-              <div className="text-[11px] tracking-wider" style={{ color: "#6B5C3E" }}>
-                {ganzhiYear}年 · {zodiac}年
-              </div>
+              <a
+                href={PROJECT_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="h-8 flex items-center"
+                title="GitHub Star"
+              >
+                <img
+                  alt="GitHub Star"
+                  src="https://img.shields.io/badge/GitHub-Star-8B1A1A?logo=github&logoColor=white&labelColor=2E2820"
+                  className="h-5"
+                />
+              </a>
             </div>
           </div>
           <div style={{ height: "1px", background: "rgba(26,18,8,0.2)" }} />
@@ -622,7 +612,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.22, ease: "easeInOut" }}
               >
-                <DayView date={selectedDate} profession={profession} />
+                <DayView date={selectedDate} profession={profession} yearLabel={`${ganzhiYear}年 · ${zodiac}年`} />
               </motion.div>
             ) : (
               <motion.div
