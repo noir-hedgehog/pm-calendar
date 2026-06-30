@@ -580,19 +580,6 @@ export default function App() {
                 <CalendarDays size={16} strokeWidth={1.6} />
                 <span className="text-[11px] tracking-[0.16em]">月历</span>
               </button>
-              <a
-                href={PROJECT_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="h-8 flex items-center"
-                title="GitHub Star"
-              >
-                <img
-                  alt="GitHub Star"
-                  src="https://img.shields.io/badge/GitHub-Star-8B1A1A?logo=github&logoColor=white&labelColor=2E2820"
-                  className="h-5"
-                />
-              </a>
             </div>
           </div>
           <div style={{ height: "1px", background: "rgba(26,18,8,0.2)" }} />
@@ -643,9 +630,18 @@ export default function App() {
           style={{ color: "#8B7455" }}
         >
           <span>── 诸事顺遂，万事如意 ──</span>
-          <a href="https://hits.sh/noir-hedgehog.github.io/pm-calendar/" target="_blank" rel="noreferrer">
-            <img alt="Hits" src="https://hits.sh/noir-hedgehog.github.io/pm-calendar.svg" />
-          </a>
+          <div className="flex items-center justify-center gap-2">
+            <a href="https://hits.sh/noir-hedgehog.github.io/pm-calendar/" target="_blank" rel="noreferrer">
+              <img alt="Hits" src="https://hits.sh/noir-hedgehog.github.io/pm-calendar.svg" />
+            </a>
+            <a href={PROJECT_URL} target="_blank" rel="noreferrer" title="GitHub Star">
+              <img
+                alt="GitHub Star"
+                src="https://img.shields.io/badge/GitHub-Star-8B1A1A?logo=github&logoColor=white&labelColor=2E2820"
+                className="h-5"
+              />
+            </a>
+          </div>
         </div>
       </div>
       {shareImage && (
