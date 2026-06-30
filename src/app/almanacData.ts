@@ -12,7 +12,7 @@ export const CN_WEEKDAYS = ["星期日", "星期一", "星期二", "星期三", 
 
 export const FORTUNES = ["大吉", "中吉", "小吉", "平", "小凶", "凶"] as const;
 export type Fortune = typeof FORTUNES[number];
-export const PROFESSIONS = ["product", "developer", "tester", "projectManager"] as const;
+export const PROFESSIONS = ["product", "developer", "tester", "projectManager", "operations"] as const;
 export type Profession = typeof PROFESSIONS[number];
 
 export const FORTUNE_PALETTE: Record<Fortune, { seal: string; dot: string }> = {
@@ -90,7 +90,7 @@ export const PROFESSION_PROFILES: Record<Profession, {
   quotes: string[];
 }> = {
   product: {
-    label: "产品经理",
+    label: "产品",
     shortLabel: "产品",
     title: "产品黄历",
     noblePeople: ["资深设计师", "用户代表", "数据分析师", "研发经理", "运营负责人"],
@@ -135,7 +135,7 @@ export const PROFESSION_PROFILES: Record<Profession, {
     ],
   },
   projectManager: {
-    label: "项目经理",
+    label: "项目",
     shortLabel: "项目",
     title: "项目黄历",
     noblePeople: ["研发经理", "产品负责人", "测试负责人", "业务负责人", "资源协调人"],
@@ -147,6 +147,21 @@ export const PROFESSION_PROFILES: Record<Profession, {
       "排期不是愿望清单，是团队承诺的边界。",
       "把依赖摊开，项目就少一半玄学。",
       "会议的价值，在于会后每个人都知道下一步。",
+    ],
+  },
+  operations: {
+    label: "运营",
+    shortLabel: "运营",
+    title: "运营黄历",
+    noblePeople: ["数据分析师", "产品经理", "增长负责人", "用户代表", "内容负责人"],
+    clashRoles: ["临时改口径的人", "预算守门人", "渠道接口人", "素材延期方", "审批缺席人"],
+    preferredTags: ["growth", "analysis", "alignment", "review", "ops"],
+    cautiousTags: ["promise", "scope", "release"],
+    quotes: [
+      "运营不是把声量做大，而是把有效动作做深。",
+      "每一次活动复盘，都是下一次增长的地图。",
+      "用户路径越清楚，转化就越少靠运气。",
+      "好运营会让数据说话，也会听见数据之外的人话。",
     ],
   },
 };
@@ -193,6 +208,10 @@ export const AUSPICIOUS_ACTIVITIES: Activity[] = [
   { label: "同步里程碑", tags: ["alignment", "delivery"], elements: ["土", "火"] },
   { label: "更新项目计划", tags: ["planning", "delivery"], elements: ["土", "木"] },
   { label: "依赖逐项确认", tags: ["alignment", "risk"], elements: ["土", "金"] },
+  { label: "活动复盘", tags: ["ops", "analysis", "review"], elements: ["水", "金"] },
+  { label: "用户分层运营", tags: ["ops", "growth", "analysis"], elements: ["水", "木"] },
+  { label: "优化转化路径", tags: ["ops", "growth"], elements: ["木", "火"] },
+  { label: "梳理渠道数据", tags: ["ops", "analysis"], elements: ["水", "土"] },
 ];
 
 export const INAUSPICIOUS_ACTIVITIES: Activity[] = [
@@ -216,6 +235,8 @@ export const INAUSPICIOUS_ACTIVITIES: Activity[] = [
   { label: "口头确认验收", tags: ["commit", "alignment"], elements: ["土"], risk: 2 },
   { label: "压缩测试周期", tags: ["release", "risk"], elements: ["金"], risk: 3 },
   { label: "隐藏关键依赖", tags: ["closed-door", "risk"], elements: ["水"], risk: 3 },
+  { label: "临时改活动口径", tags: ["ops", "scope"], elements: ["木"], risk: 3 },
+  { label: "无数据追踪上线", tags: ["ops", "release", "analysis"], elements: ["火"], risk: 3 },
 ];
 
 export const PM_QUOTES = [

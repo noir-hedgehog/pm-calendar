@@ -523,10 +523,10 @@ export default function App() {
         {/* Header */}
         <header className="px-6 pt-8 pb-5">
           <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
+            <div className="flex items-center gap-3 min-w-0">
               {isSelectedToday ? (
                 <h1
-                  className="text-[13px] tracking-[0.55em] font-medium pt-1"
+                  className="text-[13px] tracking-[0.45em] font-medium whitespace-nowrap"
                   style={{ color: "#8B1A1A" }}
                 >
                   职 场 黄 历
@@ -541,8 +541,39 @@ export default function App() {
                   返回今日
                 </button>
               )}
+              <select
+                aria-label="选择职业"
+                value={profession}
+                onChange={event => setProfession(event.target.value as Profession)}
+                className="h-8 px-2 text-[12px] tracking-[0.12em] outline-none"
+                style={{
+                  color: "#6B5C3E",
+                  background: "rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(107,92,62,0.25)",
+                  fontFamily: '"Noto Serif SC", serif',
+                }}
+              >
+                {PROFESSIONS.map(item => (
+                  <option key={item} value={item}>
+                    {PROFESSION_PROFILES[item].label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center gap-2">
+              <a
+                href={PROJECT_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="h-8 flex items-center"
+                title="GitHub stars"
+              >
+                <img
+                  alt="GitHub stars"
+                  src="https://img.shields.io/github/stars/noir-hedgehog/pm-calendar?style=social"
+                  className="h-5"
+                />
+              </a>
               <button
                 onClick={shareCurrentDay}
                 disabled={isCreatingShare}
@@ -567,22 +598,7 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center justify-between gap-4 mb-4">
-            <div className="flex flex-wrap gap-1.5">
-              {PROFESSIONS.map(item => (
-                <button
-                  key={item}
-                  onClick={() => setProfession(item)}
-                  className="px-2.5 h-7 text-[11px] tracking-[0.08em] transition-colors"
-                  style={{
-                    color: profession === item ? "#F0E6CC" : "#6B5C3E",
-                    background: profession === item ? "#8B1A1A" : "rgba(255,255,255,0.18)",
-                    border: `1px solid ${profession === item ? "#8B1A1A" : "rgba(107,92,62,0.25)"}`,
-                  }}
-                >
-                  {PROFESSION_PROFILES[item].label}
-                </button>
-              ))}
-            </div>
+            <div />
             <div className="text-right flex-shrink-0">
               <div className="text-[11px] tracking-wider" style={{ color: "#6B5C3E" }}>
                 {ganzhiYear}年 · {zodiac}年
@@ -633,10 +649,13 @@ export default function App() {
 
         {/* Footer */}
         <div
-          className="px-6 pb-6 text-center text-[10px] tracking-widest"
+          className="px-6 pb-6 text-center text-[10px] tracking-widest flex flex-col items-center gap-2"
           style={{ color: "#8B7455" }}
         >
-          ── 诸事顺遂，万事如意 ──
+          <span>── 诸事顺遂，万事如意 ──</span>
+          <a href="https://hits.sh/noir-hedgehog.github.io/pm-calendar/" target="_blank" rel="noreferrer">
+            <img alt="Hits" src="https://hits.sh/noir-hedgehog.github.io/pm-calendar.svg" />
+          </a>
         </div>
       </div>
       {shareImage && (
