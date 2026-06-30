@@ -22,10 +22,6 @@ function formatMonthDay(date: Date) {
   return `${numToChinese(date.getMonth() + 1)}月 ${numToChinese(date.getDate())}日`;
 }
 
-function formatCompactDate(date: Date) {
-  return `${date.getMonth() + 1}月${date.getDate()}日${CN_WEEKDAYS[date.getDay()]}`;
-}
-
 function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
   let line = "";
   for (const char of text) {
@@ -164,19 +160,14 @@ async function createShareImage(date: Date, profession: Profession) {
 
   ctx.strokeStyle = "rgba(181,133,42,0.36)";
   ctx.lineWidth = 2;
-  ctx.strokeRect(112, 1160, 676, 136);
+  ctx.strokeRect(112, 1160, 458, 136);
   ctx.fillStyle = "#A07020";
   ctx.font = "600 22px 'Noto Serif SC', serif";
   ctx.fillText(`${profile.shortLabel}箴言`, 136, 1206);
   ctx.fillStyle = "#5A4A2E";
   ctx.font = "23px 'Noto Serif SC', serif";
   wrapCanvasText(ctx, data.quote, 136, 1244, 400, 34);
-  ctx.drawImage(qrImage, 596, 1174, 108, 108);
-  ctx.fillStyle = "#8B7455";
-  ctx.font = "16px 'Noto Serif SC', serif";
-  ctx.fillText("项目二维码", 716, 1230);
-  ctx.font = "13px 'Noto Serif SC', serif";
-  ctx.fillText("GitHub 开源项目", 716, 1256);
+  ctx.drawImage(qrImage, 628, 1168, 128, 128);
 
   return canvas.toDataURL("image/png");
 }

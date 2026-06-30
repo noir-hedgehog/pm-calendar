@@ -17,6 +17,9 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
+  base: process.env.GITHUB_PAGES === 'true' || process.env.GITHUB_ACTIONS === 'true'
+    ? '/pm-calendar/'
+    : '/',
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
