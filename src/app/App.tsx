@@ -16,6 +16,7 @@ import {
   yearZodiac,
 } from "./almanac";
 
+const APP_URL = "https://noir-hedgehog.github.io/pm-calendar/";
 const PROJECT_URL = "https://github.com/noir-hedgehog/pm-calendar";
 
 function formatMonthDay(date: Date) {
@@ -59,7 +60,7 @@ async function createShareImage(date: Date, profession: Profession) {
   const lunar = lunarDate(date);
   const sealColor = fortuneColor(data.fortune);
   const monthDayText = formatMonthDay(date);
-  const qrDataUrl = await QRCode.toDataURL(PROJECT_URL, {
+  const qrDataUrl = await QRCode.toDataURL(APP_URL, {
     width: 172,
     margin: 1,
     color: { dark: "#1A1208", light: "#F0E6CC" },
